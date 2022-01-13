@@ -22,7 +22,7 @@ public final class InvokeDynamicTransformer implements Transformer {
       return;
     }
     List<MethodNode> methods = classNode.methods;
-    String bsmName = computeMethodNew(methods);
+    String bsmName = generateMethodName(methods);
     for (MethodNode method : methods) {
       // TODO: Fix VerifyError in constructors
       if (!isConstructorMethod(method.name)) {
@@ -34,7 +34,7 @@ public final class InvokeDynamicTransformer implements Transformer {
     methods.add(BoostrapMethodGen.boostrapMethodOf(bsmName));
   }
 
-  private String computeMethodNew(List<MethodNode> methods) {
+  private String generateMethodName(List<MethodNode> methods) {
     List<String> occupied = methods.stream().map(Object::toString).collect(Collectors.toList());
     String uuid;
     do {
