@@ -25,11 +25,9 @@ public final class InvokeDynamicTransformer implements Transformer {
     String bsmName = computeMethodNew(methods);
     for (MethodNode method : methods) {
       // TODO: Fix VerifyError in constructors
-      if (method.name.equals("<init>")) {
-        continue;
+      if (!isConstructorMethod(method.name)) {
+        transformMethod(classNode, bsmName, method);
       }
-
-      transformMethod(classNode, bsmName, method);
     }
 
     // Add BoostrapMethod
@@ -52,8 +50,12 @@ public final class InvokeDynamicTransformer implements Transformer {
   private void transformMethod(ClassNode classNode, String bsmName, MethodNode method) {
     InsnList instructions = method.instructions;
     for (AbstractInsnNode instruction : instructions) {
-      if (instruction instanceof MethodInsnNode) {
-        InvokeDynamicInsnNode indy = convertMethodInstruction(classNode, bsmName, (MethodInsnNode) instruction);
+      if (instruction instanceof MethodInsnNode methodInsn) {
+        if (isConstructorMethod(methodInsn.name)) {
+          continue;
+        }
+
+        InvokeDynamicInsnNode indy = convertMethodInstruction(classNode, bsmName, methodInsn);
         instructions.set(instruction, indy);
       }
     }
@@ -65,7 +67,7 @@ public final class InvokeDynamicTransformer implements Transformer {
       "_",
       resolveDescriptor(methodInsn.getOpcode(), methodInsn.desc),
       handle,
-      createKeyFrom(methodInsn)
+      createKeyFrom(classNode, methodInsn)
     );
   }
 
@@ -78,13 +80,25 @@ public final class InvokeDynamicTransformer implements Transformer {
     };
   }
 
-  private String createKeyFrom(MethodInsnNode methodInsn) {
-    String[] strings = new String[]{
-      translateToBsmName(methodInsn.getOpcode()),
-      methodInsn.owner.replace("/", "."),
-      methodInsn.name,
-      methodInsn.desc
-    };
+  private String createKeyFrom(ClassNode classNode, MethodInsnNode methodInsn) {
+    int opcode = methodInsn.getOpcode();
+    String[] strings;
+    if (opcode == INVOKESPECIAL) {
+      strings = new String[]{
+        translateToBsmName(methodInsn.getOpcode()),
+        toJvmName(methodInsn.owner),
+        methodInsn.name,
+        methodInsn.desc,
+        toJvmName(classNode.name)
+      };
+    } else {
+      strings = new String[]{
+        translateToBsmName(methodInsn.getOpcode()),
+        toJvmName(methodInsn.owner),
+        methodInsn.name,
+        methodInsn.desc
+      };
+    }
     return String.join(";;", strings);
   }
 
@@ -99,5 +113,13 @@ public final class InvokeDynamicTransformer implements Transformer {
         return "2";
     }
     throw new IllegalStateException("Cannot translate opcode: " + opcode);
+  }
+
+  private boolean isConstructorMethod(String method) {
+    return method.equals("<init>") || method.equals("<clinit>");
+  }
+
+  private String toJvmName(String className) {
+    return className.replace("/", ".");
   }
 }
