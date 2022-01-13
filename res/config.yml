@@ -1,0 +1,5 @@
+input: "res/input.jar"
+output: "res/output.jar"
+
+libraries:
+  - "rt.jar"
