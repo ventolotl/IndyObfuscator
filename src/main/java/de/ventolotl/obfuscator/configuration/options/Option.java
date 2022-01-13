@@ -11,21 +11,6 @@ public abstract class Option<T> {
 
   public abstract T resolve(Map<String, Object> entries);
 
-  public static class Value<T> {
-    private final Option<T> option;
-    private final T value;
-
-    public Value(Option<T> option, T value) {
-      this.option = option;
-      this.value = value;
-    }
-
-    public Option<T> option() {
-      return option;
-    }
-
-    public T value() {
-      return value;
-    }
+  public record Value<T>(Option<T> option, T value) {
   }
 }
