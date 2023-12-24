@@ -1,6 +1,5 @@
 # IndyObfuscator
-This is a small project that obfuscates method calls in Java Bytecode by replacing them with InvokeDynamic instructions.
+This is a simple project that provides an implementation to obfuscate method calls in Java Bytecode by replacing them with invokedynamic instructions.
 
 ## Disclaimer
-Besides that the obfuscator is open-source, the decryption of the inserted InvokeDynamic instructions is pretty easy.
-Therefore, it is not recommended using this in production.
+Please note that this project is meant to provide an easy implementation of an invokedynamic obfuscation. Therefore, the decryption of the inserted invokedynamic instructions is pretty easy and it is thus not recommended to use this in production.
